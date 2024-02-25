@@ -22,15 +22,30 @@ jobs:
               --error
 
         # step 3
-        
         - name: save report as pipeline artifact
           uses: actions/upload-artifact@v3
           with:
             name: report.sarif
             path: report.sarif
-            
+
         # step 4
         - name: Download report
           uses: actions/download-artifact@v2
-          with: 
+          with:
             name: report.sarif
+
+        # step 5
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}
+
+            Repository: ${{ github.repository }}
+            Build: ${{ job.status }}
+
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+          document: report.sarif
